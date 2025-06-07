@@ -97,6 +97,74 @@ class CategoryImageManager
     }
 
     /**
+     * Get all products from a category for selection
+     *
+     * @param int $categoryId
+     * @return ProductCollection
+     */
+    public function getProductsFromCategory(int $categoryId): ProductCollection
+    {
+        /** @var ProductCollection $collection */
+        $collection = $this->productCollectionFactory->create();
+        $collection->addCategoriesFilter(['eq' => $categoryId])
+            ->addAttributeToSelect(['name', 'image', 'small_image', 'thumbnail', 'sku'])
+            ->addAttributeToFilter('image', ['notnull' => true])
+            ->addAttributeToFilter('image', ['neq' => 'no_selection'])
+            ->setPageSize(50) // Limit to 50 products for UI performance
+            ->load();
+
+        return $collection;
+    }
+
+    /**
+     * Get specific products by IDs
+     *
+     * @param array $productIds
+     * @return ProductCollection
+     */
+    public function getProductsByIds(array $productIds): ProductCollection
+    {
+        /** @var ProductCollection $collection */
+        $collection = $this->productCollectionFactory->create();
+        $collection->addAttributeToSelect(['name', 'image'])
+            ->addAttributeToFilter('entity_id', ['in' => $productIds])
+            ->addAttributeToFilter('image', ['notnull' => true])
+            ->addAttributeToFilter('image', ['neq' => 'no_selection'])
+            ->load();
+
+        return $collection;
+    }
+
+    /**
+     * Get product data for UI display
+     *
+     * @param int $categoryId
+     * @return array
+     */
+    public function getProductDataForUI(int $categoryId): array
+    {
+        $products = $this->getProductsFromCategory($categoryId);
+        $productData = [];
+        $mediaBaseUrl = $this->getMediaBaseUrl();
+
+        foreach ($products as $product) {
+            $imageUrl = '';
+            if ($product->getImage() && $product->getImage() !== 'no_selection') {
+                $imageUrl = $mediaBaseUrl . self::PRODUCT_IMAGE_PATH . $product->getImage();
+            }
+
+            $productData[] = [
+                'id' => $product->getId(),
+                'name' => $product->getName(),
+                'image_url' => $imageUrl,
+                'sku' => $product->getSku()
+            ];
+        }
+
+        return $productData;
+    }
+
+    /**
      * Get product image paths
      *
      * @param ProductCollection $products

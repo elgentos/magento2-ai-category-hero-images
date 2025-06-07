@@ -40,16 +40,37 @@ class Config extends Action implements HttpPostActionInterface
     {
         $resultJson = $this->resultJsonFactory->create();
         $categoryId = (int) $this->_request->getParam('category_id');
+        $productIds = $this->_request->getParam('product_ids', []);
 
         try {
-            $products = $this->categoryImageManager->getRandomProductsFromCategory((int) $categoryId, 5);
+            // If product IDs are provided, generate prompt for those specific products
+            if (!empty($productIds) && is_array($productIds)) {
+                $products = $this->categoryImageManager->getProductsByIds($productIds);
+                $defaultPrompt = $this->categoryImageManager->generatePrompt(
+                    $products,
+                    $this->categoryRepository->get($categoryId)
+                );
+
+                return $resultJson->setData([
+                    'success'        => true,
+                    'default_prompt' => $defaultPrompt,
+                ]);
+            }
+
+            // Otherwise, get products for selection UI and default prompt
+            $productData = $this->categoryImageManager->getProductDataForUI($categoryId);
+            
+            // Get default prompt with random products
+            $randomProducts = $this->categoryImageManager->getRandomProductsFromCategory($categoryId, 3);
+            $defaultPrompt = $this->categoryImageManager->generatePrompt(
+                $randomProducts,
+                $this->categoryRepository->get($categoryId)
+            );
 
             return $resultJson->setData([
                 'success'        => true,
-                'default_prompt' => $this->categoryImageManager->generatePrompt(
-                    $products,
-                    $this->categoryRepository->get($categoryId)
-                ),
+                'products'       => $productData,
+                'default_prompt' => $defaultPrompt,
             ]);
 
         } catch (\Exception $e) {
