@@ -5,6 +5,10 @@ This Magento 2 extension generates AI-powered hero images for categories using O
 ## Features
 
 - Button "Generate with AI" in the admin when on the Category edit page
+- **Product Selection Interface**: Choose specific products from the category to use for image generation
+- Visual product grid with thumbnails, names, and SKUs for easy selection
+- "Select All" and "Deselect All" buttons for quick selection management
+- "Refresh Prompt" button to regenerate prompt based on selected products
 - Console command to generate AI hero images in bulk for categories
 - Selects random products from a category and uses their information to generate a prompt
 - Enhances the prompt based on product information
@@ -40,9 +44,21 @@ bin/magento setup:upgrade
 
 ## Usage
 
-Open a category and click the "Generate with AI" button, followed by optionally adapting the prompt to your liking.
+### Admin Interface
 
-Or run the following command to generate a hero image for a category:
+1. Open a category in the admin panel
+2. Click the "Generate with AI" button
+3. In the modal that opens:
+   - **Select Products**: Browse through the visual grid of products in the category
+   - Use checkboxes to select specific products you want to include in the hero image
+   - Use "Select All" or "Deselect All" buttons for quick selection
+   - **Refresh Prompt**: Click to regenerate the prompt based on your selected products
+   - **Modify Prompt**: Edit the generated prompt text if desired
+   - **Generate**: Click to create the hero image using the selected products
+
+### Console Command
+
+Run the following command to generate a hero image for a category:
 
 ```bash
 bin/magento elgentos:aicategoryhero:generate [category_id]

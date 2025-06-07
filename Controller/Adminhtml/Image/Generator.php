@@ -43,7 +43,12 @@ class Generator extends Action implements HttpPostActionInterface
 
         $prompt = $this->getRequest()->getParam('prompt');
         $categoryId = $this->getRequest()->getParam('category_id');
-        $numProducts = $this->getRequest()->getParam('num_poducts') ?? 3;
+        $productIds = $this->getRequest()->getParam('product_ids', []);
+        
+        // Ensure product_ids is an array
+        if (!is_array($productIds)) {
+            $productIds = [];
+        }
 
         if (!$prompt) {
             return $resultJson->setData([
@@ -59,9 +64,16 @@ class Generator extends Action implements HttpPostActionInterface
             ]);
         }
 
+        if (empty($productIds)) {
+            return $resultJson->setData([
+                'success' => false,
+                'message' => __('No products selected.')
+            ]);
+        }
+
         try {
-            $products = $this->categoryImageManager->getRandomProductsFromCategory((int) $categoryId, $numProducts);
-            $productImages = $this->categoryImageManager->getProductImagePaths($products, $numProducts);
+            $products = $this->categoryImageManager->getProductsByIds($productIds);
+            $productImages = $this->categoryImageManager->getProductImagePaths($products, count($productIds));
             $category = $this->categoryImageManager->getCategory((int) $categoryId);
             $prompt = $this->categoryImageManager->generatePrompt($products, $category);
             $image = $this->imageGenerator->generateImage($prompt, $productImages);
